@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DODA – Parnaxx</title>
+<style>
+:root {
+  --red: #C8201A;
+  --red-dark: #a01814;
+  --black: #0d0d0d;
+  --gray: #1a1a1a;
+  --gray2: #242424;
+  --gray3: #2e2e2e;
+  --border: #333;
+  --text: #f0f0f0;
+  --muted: #888;
+  --white: #fff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--black); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+/* LOGIN */
+#login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-box { background: var(--gray); border: 1px solid var(--border); border-radius: 14px; padding: 40px 32px; width: 100%; max-width: 360px; }
+.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.login-logo .dot { width: 13px; height: 13px; background: var(--red); border-radius: 50%; }
+.login-logo span { font-size: 24px; font-weight: 800; letter-spacing: 3px; color: var(--white); }
+.login-sub { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+.login-box input { width: 100%; background: var(--gray2); border: 1px solid var(--border); color: var(--text); padding: 13px 14px; border-radius: 8px; font-size: 16px; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+.login-box input:focus { border-color: var(--red); }
+.btn-login { width: 100%; background: var(--red); color: var(--white); border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
+.btn-login:hover { background: var(--red-dark); }
+.login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; text-align: center; min-height: 18px; }
+
+/* APP */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+
+/* HEADER */
+header { background: var(--gray); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
+.header-logo { display: flex; align-items: center; gap: 8px; }
+.header-logo .dot { width: 10px; height: 10px; background: var(--red); border-radius: 50%; }
+.header-logo span { font-size: 18px; font-weight: 800; letter-spacing: 3px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+#sync-status { font-size: 11px; color: var(--muted); }
+.sync-btn { background: var(--gray2); border: 1px solid var(--border); color: var(--text); padding: 7px 13px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; }
+.sync-btn:hover { background: var(--gray3); }
+.sync-btn.syncing { opacity: 0.5; pointer-events: none; }
+.logout-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 6px; }
+.logout-btn:hover { color: var(--text); }
+
+/* STATS BAR */
+.stats-bar { background: var(--gray2); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; gap: 20px; overflow-x: auto; }
+.stat { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+.stat-num { font-size: 18px; font-weight: 700; color: var(--white); }
+.stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+/* FILTERS */
+.filters { padding: 12px 20px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid var(--border); }
+.filter-btn { background: var(--gray2); border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+.filter-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+.search-box { background: var(--gray2); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 20px; font-size: 13px; outline: none; width: 200px; flex-shrink: 0; }
+.search-box:focus { border-color: var(--red); }
+.search-box::placeholder { color: var(--muted); }
+
+/* MOBILE TABS */
+.mobile-tabs { display: none; background: var(--gray); border-bottom: 1px solid var(--border); overflow-x: auto; white-space: nowrap; padding: 0 8px; }
+.mobile-tab { display: inline-block; padding: 12px 14px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+.mobile-tab.active { color: var(--white); border-bottom-color: var(--red); }
+.mobile-tab.tab-semresposta.active { border-bottom-color: var(--red); color: #e74c3c; }
+
+/* BOARD */
+.board-wrap { flex: 1; overflow-x: auto; padding: 20px; }
+.board { display: flex; gap: 14px; min-width: max-content; align-items: flex-start; }
+
+/* COLUMN */
+.col { width: 270px; background: var(--gray2); border-radius: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; max-height: calc(100vh - 230px); }
+.col-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+.col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.col-count { background: var(--gray3); color: var(--muted); font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.col-body { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
+.col-body::-webkit-scrollbar { width: 4px; }
+.col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* SEM RESPOSTA */
+.col-semresposta { border-color: rgba(200,32,26,0.45); }
+.col-semresposta .col-header { border-bottom-color: rgba(200,32,26,0.3); background: rgba(200,32,26,0.05); border-radius: 10px 10px 0 0; }
+
+/* CARD */
+.card { background: var(--gray); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
+.card:hover { border-color: #555; transform: translateY(-1px); }
+.card-semresposta { border-left: 3px solid var(--red); }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.card-name { font-size: 13px; font-weight: 600; color: var(--white); line-height: 1.3; flex: 1; }
+.badge-new { background: #e67e22; color: var(--white); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; flex-shrink: 0; }
+.card-cnpj { font-size: 10px; color: var(--muted); margin-bottom: 6px; font-family: monospace; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--gray2); color: var(--muted); border: 1px solid var(--border); }
+.tag.s-high { background: rgba(39,174,96,0.15); color: #2ecc71; border-color: rgba(39,174,96,0.3); }
+.tag.s-mid { background: rgba(241,196,15,0.15); color: #f1c40f; border-color: rgba(241,196,15,0.3); }
+.tag.s-low { background: rgba(231,76,60,0.1); color: #e74c3c; border-color: rgba(231,76,60,0.2); }
+.tag.orig { background: rgba(52,152,219,0.1); color: #3498db; border-color: rgba(52,152,219,0.2); }
+.card-doado { font-size: 11px; color: var(--muted); }
+.card-doado span { color: #2ecc71; font-weight: 600; }
+
+/* EMPTY */
+.empty-col { text-align: center; padding: 28px 16px; color: var(--muted); font-size: 12px; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--gray); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.modal-title { font-size: 15px; font-weight: 700; color: var(--white); line-height: 1.3; }
+.modal-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-item label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
+.info-item span { font-size: 13px; color: var(--text); }
+.info-item.full { grid-column: 1/-1; }
+.modal-field { display: flex; flex-direction: column; gap: 6px; }
+.modal-field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.modal-field select, .modal-field input, .modal-field textarea { background: var(--gray2); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; width: 100%; font-family: inherit; resize: vertical; }
+.modal-field select:focus, .modal-field input:focus, .modal-field textarea:focus { border-color: var(--red); }
+.modal-field input::placeholder, .modal-field textarea::placeholder { color: var(--muted); }
+.btn-save { background: var(--red); color: var(--white); border: none; padding: 13px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; transition: background 0.2s; }
+.btn-save:hover { background: var(--red-dark); }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .mobile-tabs { display: block; }
+  .board-wrap { padding: 12px; }
+  .board { min-width: unset; }
+  .col { width: 100%; display: none; max-height: calc(100vh - 300px); }
+  .col.mob-active { display: flex; }
+  .stats-bar { gap: 14px; padding: 8px 14px; }
+  .filters { padding: 10px 12px; }
+  .search-box { width: 150px; }
+  #sync-status { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo"><div class="dot"></div><span>DODA</span></div>
+    <div class="login-sub">Sistema de prospecção Parnaxx</div>
+    <input type="password" id="pwd" placeholder="Senha" autocomplete="current-password">
+    <button class="btn-login" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="login-err"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="header-logo"><div class="dot"></div><span>DODA</span></div>
+    <div class="header-right">
+      <span id="sync-status">—</span>
+      <button class="sync-btn" id="sync-btn" onclick="syncLeads()">⟳ Sincronizar</button>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-num" id="s-lead">0</div><div class="stat-label">Lead</div></div>
+    <div class="stat"><div class="stat-num" id="s-contato">0</div><div class="stat-label">1º Contato</div></div>
+    <div class="stat"><div class="stat-num" id="s-semresp" style="color:#e74c3c">0</div><div class="stat-label">Sem Resp.</div></div>
+    <div class="stat"><div class="stat-num" id="s-doda">0</div><div class="stat-label">Doda</div></div>
+    <div class="stat"><div class="stat-num" id="s-agendor">0</div><div class="stat-label">Agendor</div></div>
+  </div>
+
+  <div class="filters">
+    <input class="search-box" id="search" placeholder="🔍 Buscar empresa..." oninput="renderBoard()">
+    <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+    <button class="filter-btn" onclick="setFilter('SALIC-PR',this)">PR</button>
+    <button class="filter-btn" onclick="setFilter('SALIC-SP',this)">SP</button>
+    <button class="filter-btn" onclick="setFilter('SALIC-SC',this)">SC</button>
+    <button class="filter-btn" onclick="setFilter('score8',this)">Score 8+</button>
+    <button class="filter-btn" onclick="setFilter('novos',this)">Novos</button>
+  </div>
+
+  <div class="mobile-tabs">
+    <span class="mobile-tab mob-active" onclick="setTab('lead',this)">Lead</span>
+    <span class="mobile-tab" onclick="setTab('contato',this)">1º Contato</span>
+    <span class="mobile-tab tab-semresposta" onclick="setTab('semresposta',this)">Sem Resposta</span>
+    <span class="mobile-tab" onclick="setTab('doda',this)">Doda</span>
+    <span class="mobile-tab" onclick="setTab('agendor',this)">Agendor</span>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board">
+
+      <div class="col mob-active" id="col-lead">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot" style="background:#3498db"></div>Lead</div>
+          <div class="col-count" id="cnt-lead">0</div>
+        </div>
+        <div class="col-body" id="body-lead"></div>
+      </div>
+
+      <div class="col" id="col-contato">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot" style="background:#f39c12"></div>Primeiro Contato</div>
+          <div class="col-count" id="cnt-contato">0</div>
+        </div>
+        <div class="col-body" id="body-contato"></div>
+      </div>
+
+      <div class="col col-semresposta" id="col-semresposta">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot" style="background:#C8201A"></div><span style="color:#e74c3c">Contato Sem Resposta</span></div>
+          <div class="col-count" id="cnt-semresposta">0</div>
+        </div>
+        <div class="col-body" id="body-semresposta"></div>
+      </div>
+
+      <div class="col" id="col-doda">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot" style="background:#9b59b6"></div>Doda</div>
+          <div class="col-count" id="cnt-doda">0</div>
+        </div>
+        <div class="col-body" id="body-doda"></div>
+      </div>
+
+      <div class="col" id="col-agendor">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot" style="background:#2ecc71"></div>Agendor</div>
+          <div class="col-count" id="cnt-agendor">0</div>
+        </div>
+        <div class="col-body" id="body-agendor"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeOut(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="m-title">—</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-grid" id="m-info"></div>
+      <div class="modal-field">
+        <label>Estágio</label>
+        <select id="m-stage">
+          <option value="lead">Lead</option>
+          <option value="contato">Primeiro Contato</option>
+          <option value="semresposta">Contato Sem Resposta</option>
+          <option value="doda">Doda</option>
+          <option value="agendor">Agendor</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>LinkedIn</label>
+        <input type="url" id="m-linkedin" placeholder="https://linkedin.com/in/...">
+      </div>
+      <div class="modal-field">
+        <label>E-mail</label>
+        <input type="email" id="m-email" placeholder="contato@empresa.com.br">
+      </div>
+      <div class="modal-field">
+        <label>Telefone</label>
+        <input type="tel" id="m-phone" placeholder="(41) 99999-9999">
+      </div>
+      <div class="modal-field">
+        <label>Notas</label>
+        <textarea id="m-notes" rows="3" placeholder="Observações, histórico de contato..."></textarea>
+      </div>
+      <button class="btn-save" onclick="saveCard()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SENHA = 'parnaxx2026';
+const WEBHOOK = 'https://kaze192023.app.n8n.cloud/webhook/doda-leads';
+const SK = 'doda_meta_v3';
+const STAGES = ['lead','contato','semresposta','doda','agendor'];
+
+let leads = [], meta = {}, activeFilter = 'todos', activeCnpj = null;
+
+// AUTH
+function doLogin() {
+  if (document.getElementById('pwd').value === SENHA) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadMeta(); syncLeads();
+    setInterval(syncLeads, 60000);
+  } else {
+    document.getElementById('login-err').textContent = 'Senha incorreta.';
+    document.getElementById('pwd').value = '';
+  }
+}
+document.getElementById('pwd').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+function doLogout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pwd').value = '';
+  document.getElementById('login-err').textContent = '';
+}
+
+// META
+function loadMeta() { try { meta = JSON.parse(localStorage.getItem(SK)||'{}'); } catch { meta={}; } }
+function saveMeta() { localStorage.setItem(SK, JSON.stringify(meta)); }
+function getMeta(cnpj) { return meta[cnpj] || {stage:'lead',linkedin:'',email:'',phone:'',notes:''}; }
+
+// SYNC
+async function syncLeads() {
+  const btn = document.getElementById('sync-btn');
+  const st = document.getElementById('sync-status');
+  btn.classList.add('syncing'); btn.textContent = '⟳ Sincronizando...';
+  st.textContent = 'Atualizando...';
+  try {
+    const r = await fetch(WEBHOOK);
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    leads = Array.isArray(d) ? d : (d.leads || []);
+    const t = new Date();
+    st.textContent = 'Atualizado ' + t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    renderBoard();
+  } catch(e) {
+    st.textContent = 'Erro ao sincronizar';
+  }
+  btn.classList.remove('syncing'); btn.textContent = '⟳ Sincronizar';
+}
+
+// HELPERS
+function normCnpj(c) { return String(c||'').replace(/\D/g,'').padStart(14,'0'); }
+function fmtCnpj(c) { return normCnpj(c).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'); }
+function getMun(l) { return l['munícipio'] || l.municipio || ''; }
+function isNew(l) {
+  const d = l.data_entrada; if(!d) return false;
+  return (Date.now() - new Date(d)) / 86400000 <= 7;
+}
+function sTag(s) {
+  const n = parseInt(s||0);
+  if(n>=8) return 's-high'; if(n>=5) return 's-mid'; return 's-low';
+}
+
+// FILTER
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderBoard();
+}
+function filtered() {
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  return leads.filter(l => {
+    const cnpj = normCnpj(l.cnpj);
+    if(activeFilter==='SALIC-PR' && l.origem!=='SALIC-PR') return false;
+    if(activeFilter==='SALIC-SP' && l.origem!=='SALIC-SP') return false;
+    if(activeFilter==='SALIC-SC' && l.origem!=='SALIC-SC') return false;
+    if(activeFilter==='score8' && parseInt(l.score||0)<8) return false;
+    if(activeFilter==='novos' && !isNew(l)) return false;
+    if(q) {
+      const txt = [(l.nome||''),(l.nome_fantasia||''),getMun(l),cnpj].join(' ').toLowerCase();
+      if(!txt.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+// RENDER
+function renderBoard() {
+  const f = filtered();
+  const g = {lead:[],contato:[],semresposta:[],doda:[],agendor:[]};
+  f.forEach(l => {
+    const cnpj = normCnpj(l.cnpj);
+    const s = getMeta(cnpj).stage || 'lead';
+    (g[s]||g.lead).push(l);
+  });
+  STAGES.forEach(s => g[s].sort((a,b)=>(parseInt(b.score||0))-(parseInt(a.score||0))));
+
+  STAGES.forEach(s => {
+    const body = document.getElementById('body-'+s);
+    document.getElementById('cnt-'+s).textContent = g[s].length;
+    body.innerHTML = '';
+    if(!g[s].length) { body.innerHTML='<div class="empty-col">Nenhum lead</div>'; return; }
+    g[s].forEach(l => body.appendChild(makeCard(l, s)));
+  });
+
+  document.getElementById('s-total').textContent = f.length;
+  document.getElementById('s-lead').textContent = g.lead.length;
+  document.getElementById('s-contato').textContent = g.contato.length;
+  document.getElementById('s-semresp').textContent = g.semresposta.length;
+  document.getElementById('s-doda').textContent = g.doda.length;
+  document.getElementById('s-agendor').textContent = g.agendor.length;
+}
+
+function makeCard(l, stage) {
+  const cnpj = normCnpj(l.cnpj);
+  const div = document.createElement('div');
+  div.className = 'card' + (stage==='semresposta'?' card-semresposta':'');
+  div.onclick = () => openModal(l);
+  const nome = l.nome_fantasia || l.nome || '—';
+  const mun = getMun(l); const uf = l.uf||'';
+  div.innerHTML = `
+    <div class="card-top">
+      <div class="card-name">${nome}</div>
+      ${isNew(l)?'<span class="badge-new">NOVO</span>':''}
+    </div>
+    <div class="card-cnpj">${fmtCnpj(cnpj)}</div>
+    <div class="card-meta">
+      <span class="tag ${sTag(l.score)}">Score ${l.score||'?'}</span>
+      ${mun?`<span class="tag">${mun}${uf?'/'+uf:''}</span>`:''}
+      ${l.origem?`<span class="tag orig">${l.origem.replace('SALIC-','')}</span>`:''}
+    </div>
+    ${l.total_doado?`<div class="card-doado">Doado: <span>${l.total_doado}</span></div>`:''}
+  `;
+  return div;
+}
+
+// MOBILE TABS
+function setTab(tab, el) {
+  document.querySelectorAll('.mobile-tab').forEach(t=>t.classList.remove('mob-active','active'));
+  el.classList.add('mob-active','active');
+  document.querySelectorAll('.col').forEach(c=>c.classList.remove('mob-active'));
+  document.getElementById('col-'+tab).classList.add('mob-active');
+}
+
+// MODAL
+function openModal(l) {
+  activeCnpj = normCnpj(l.cnpj);
+  const m = getMeta(activeCnpj);
+  const mun = getMun(l);
+
+  document.getElementById('m-title').textContent = l.nome_fantasia || l.nome || '—';
+  document.getElementById('m-info').innerHTML = [
+    {lb:'Razão Social', v: l.nome||'—'},
+    {lb:'CNPJ', v: fmtCnpj(activeCnpj)},
+    {lb:'Município', v: mun+(l.uf?'/'+l.uf:'')},
+    {lb:'Score', v: l.score||'?'},
+    {lb:'CNAE', v: l.cnae_descricao||'—', full:true},
+    {lb:'Capital Social', v: l.capital_social?'R$ '+Number(l.capital_social).toLocaleString('pt-BR'):'—'},
+    {lb:'Total Doado SALIC', v: l.total_doado||'—'},
+    {lb:'Origem', v: l.origem||'—'},
+    {lb:'Porte', v: l.porte||'—'},
+    {lb:'Situação', v: l.situacao||'—'},
+  ].map(i=>`<div class="info-item${i.full?' full':''}"><label>${i.lb}</label><span>${i.v}</span></div>`).join('');
+
+  document.getElementById('m-stage').value = m.stage||'lead';
+  document.getElementById('m-linkedin').value = m.linkedin||'';
+  document.getElementById('m-email').value = m.email||'';
+  document.getElementById('m-phone').value = m.phone||'';
+  document.getElementById('m-notes').value = m.notes||'';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); activeCnpj=null; }
+function closeOut(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+function saveCard() {
+  if(!activeCnpj) return;
+  meta[activeCnpj] = {
+    stage: document.getElementById('m-stage').value,
+    linkedin: document.getElementById('m-linkedin').value,
+    email: document.getElementById('m-email').value,
+    phone: document.getElementById('m-phone').value,
+    notes: document.getElementById('m-notes').value,
+  };
+  saveMeta(); closeModal(); renderBoard();
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
